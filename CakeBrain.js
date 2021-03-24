@@ -11,6 +11,8 @@ const fs = require('fs'); //.osu file download
 const download = (url, path, callback) => { rp(url, (err, res, body) => { rp(url).pipe(fs.createWriteStream(path)).on('close', callback); }); }
 var colors = require('colors'); //Console Colors
 colors.setTheme({ oopsie: ['brightRed', 'bold'], debug: 'brightGreen', pm: ['brightYellow', 'bold'], pmself: ['yellow', 'bold'] });
+const prettyMilliseconds = require('pretty-ms'); //Neat time display
+var toFixed = require('tofixed'); //Round up numbers to X decimal
 
 function CalculatePerformancePoint(resolve, filePath, accuracy, mods) {
     var cmdMods = '';
@@ -18,8 +20,7 @@ function CalculatePerformancePoint(resolve, filePath, accuracy, mods) {
     exec(`dotnet "${config.locationPerformanceCalculator}" simulate osu -a ${accuracy} ${filePath} -j${cmdMods.toLowerCase()}`, (error, stdout, stderr) => {
         if (error) { console.log(colors.oopsie(error.message)); return 0; }
         if (stderr) { console.log(colors.oopsie(stderr)); return 0; }
-        var jsonOut = JSON.parse(stdout);
-        resolve(Math.ceil(jsonOut.pp));
+        resolve(JSON.parse(stdout), 0);
         return;
     });
 };
@@ -27,7 +28,10 @@ function CalculatePerformancePoint(resolve, filePath, accuracy, mods) {
 client.connect().then(() => {
     console.log(colors.debug('Cake connected to BanchoBot'));
     client.on("PM", (message) => {
+        //Display message
         console.log((message.user.ircUsername == config.osuUsername) ? colors.pmself(`${message.user.ircUsername}: ${message.message}`) : colors.pm(`${message.user.ircUsername}: ${message.message}`));
+
+        if(message.user.ircUsername == config.osuUsername) return;//If bot, cancel
 
         //Ping
         if(message.message.indexOf(".ping") == 0)
@@ -61,7 +65,11 @@ client.connect().then(() => {
                     var acc97 = new Promise((resolve, reject) => { CalculatePerformancePoint(resolve, filePath, 97, mods); });
                     var acc95 = new Promise((resolve, reject) => { CalculatePerformancePoint(resolve, filePath, 95, mods); });
                     Promise.all([acc100, acc99, acc98, acc97, acc95]).then((values) => {
-                        message.user.sendMessage(`95% ${values[4]}pp | 97% ${values[3]}pp | 98% ${values[2]}pp | 99% ${values[1]}pp | 100% ${values[0]}pp 🟣 ${mods.join("")}`);
+                        osuApi.getBeatmaps({ b: beatmapID }).then(beatmaps => {
+                            var duration = (mods.includes("DT")) ? toFixed(beatmaps[0].length.total/1.5, 0) : beatmaps[0].length.total;
+                            var bpm = (mods.includes("DT")) ? toFixed(beatmaps[0].bpm*1.5, 0) : beatmaps[0].bpm;
+                            message.user.sendMessage(`[https://osu.ppy.sh/b/${beatmaps[0].id} ${beatmaps[0].artist} - ${beatmaps[0].title} [${beatmaps[0].version}]] ${mods.join("")} | 95% ${toFixed(values[4].pp, 0)}pp | 97% ${toFixed(values[3].pp, 0)}pp | 98% ${toFixed(values[2].pp, 0)}pp | 99% ${toFixed(values[1].pp, 0)}pp | 100% ${toFixed(values[0].pp, 0)}pp | ${(prettyMilliseconds(duration * 1000, { colonNotation: true }))} ★${toFixed(beatmaps[0].difficulty.rating, 2)} ♫${bpm} AR${toFixed(values[0].AR, 2)} OD${toFixed(values[0].OD, 2)}`);
+                        });
                         if(fs.existsSync(filePath)) fs.unlinkSync(filePath);
                     });
                 });
