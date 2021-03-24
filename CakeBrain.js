@@ -13,6 +13,7 @@ var colors = require('colors'); //Console Colors
 colors.setTheme({ oopsie: ['brightRed', 'bold'], debug: 'brightGreen', pm: ['brightYellow', 'bold'], pmself: ['yellow', 'bold'] });
 const prettyMilliseconds = require('pretty-ms'); //Neat time display
 var toFixed = require('tofixed'); //Round up numbers to X decimal
+const modsBinary = { EZ: 2, HD: 8, HR: 16, DT: 64, HT: 256, NC: 512, } //Binary version of mods
 
 function CalculatePerformancePoint(resolve, filePath, accuracy, mods) {
     var cmdMods = '';
@@ -46,18 +47,18 @@ client.connect().then(() => {
                 var beatmapID = element.href.split("/");
                 beatmapID = beatmapID[beatmapID.length - 1].replace(/\D/g,'');
                 if(isNaN(beatmapID)) return;
-                var modArgs = message.message.split("+").join("-").split("-"), mods = [];
-                modArgs.forEach(element => { 
-                    if(element.includes("HD") || element.includes("Hidden")) mods.push("HD");
-                    if(element.includes("HR") || element.includes("HardRock")) mods.push("HR");
-                    if(element.includes("FL") || element.includes("Flashlight")) mods.push("FL");
-                    if(element.includes("NF") || element.includes("NoFail")) mods.push("NF");
-                    if(element.includes("EZ") || element.includes("Easy")) mods.push("EZ");
-                    if(element.includes("NC") || element.includes("NightCore")) mods.push("NC");
-                    if(element.includes("HT") || element.includes("HalfTime")) mods.push("HT");
-                    if(element.includes("DT") || element.includes("DoubleTime")) mods.push("DT");
+                var modsArgs = message.message.split("+").join("-").split("-"), mods = [];
+                modsArgs.forEach(mod => { 
+                    if(mod.includes("HD") || mod.includes("Hidden")) mods.push("HD");
+                    if(mod.includes("HR") || mod.includes("HardRock")) mods.push("HR");
+                    if(mod.includes("FL") || mod.includes("Flashlight")) mods.push("FL");
+                    if(mod.includes("NF") || mod.includes("NoFail")) mods.push("NF");
+                    if(mod.includes("EZ") || mod.includes("Easy")) mods.push("EZ");
+                    if(mod.includes("NC") || mod.includes("NightCore")) mods.push("NC");
+                    if(mod.includes("HT") || mod.includes("HalfTime")) mods.push("HT");
+                    if(mod.includes("DT") || mod.includes("DoubleTime")) mods.push("DT");
                 });
-                var filePath = (new Date().getTime() + ".osu");
+                var filePath = (new Date().getTime() + ".osu"), modsConverted = [];
                 download(`https://osu.ppy.sh/osu/${beatmapID}`, filePath, () => {
                     var acc100 = new Promise((resolve, reject) => { CalculatePerformancePoint(resolve, filePath, 100, mods); });
                     var acc99 = new Promise((resolve, reject) => { CalculatePerformancePoint(resolve, filePath, 99, mods); });
@@ -65,7 +66,8 @@ client.connect().then(() => {
                     var acc97 = new Promise((resolve, reject) => { CalculatePerformancePoint(resolve, filePath, 97, mods); });
                     var acc95 = new Promise((resolve, reject) => { CalculatePerformancePoint(resolve, filePath, 95, mods); });
                     Promise.all([acc100, acc99, acc98, acc97, acc95]).then((values) => {
-                        osuApi.getBeatmaps({ b: beatmapID }).then(beatmaps => {
+                        mods.forEach(mod => { if(modsBinary[mod] !== undefined) modsConverted.push(modsBinary[mod]); });
+                        osuApi.getBeatmaps({ b: beatmapID, mods: modsConverted }).then(beatmaps => {
                             var duration = (mods.includes("DT")) ? toFixed(beatmaps[0].length.total/1.5, 0) : beatmaps[0].length.total;
                             var bpm = (mods.includes("DT")) ? toFixed(beatmaps[0].bpm*1.5, 0) : beatmaps[0].bpm;
                             message.user.sendMessage(`[https://osu.ppy.sh/b/${beatmaps[0].id} ${beatmaps[0].artist} - ${beatmaps[0].title} [${beatmaps[0].version}]] ${mods.join("")} | 95% ${toFixed(values[4].pp, 0)}pp | 97% ${toFixed(values[3].pp, 0)}pp | 98% ${toFixed(values[2].pp, 0)}pp | 99% ${toFixed(values[1].pp, 0)}pp | 100% ${toFixed(values[0].pp, 0)}pp | ${(prettyMilliseconds(duration * 1000, { colonNotation: true }))} ★${toFixed(beatmaps[0].difficulty.rating, 2)} ♫${bpm} AR${toFixed(values[0].AR, 2)} OD${toFixed(values[0].OD, 2)}`);
@@ -74,6 +76,11 @@ client.connect().then(() => {
                     });
                 });
             });
+        }
+
+        //Detect received beatmap and calcul PP
+        if(message.message.indexOf(".r") == 0) {
+
         }
     });
 }).catch((e) => { console.log(colors.oopsie(e)); });
