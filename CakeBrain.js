@@ -13,7 +13,7 @@ var colors = require('colors'); //Console Colors
 colors.setTheme({ oopsie: ['brightRed', 'bold'], debug: 'brightGreen', pm: ['brightYellow', 'bold'], pmself: ['yellow', 'bold'] });
 const prettyMilliseconds = require('pretty-ms'); //Neat time display
 var toFixed = require('tofixed'); //Round up numbers to X decimal
-const modsBinary = { EZ: 2, HD: 8, HR: 16, DT: 64, HT: 256, NC: 512, } //Binary version of mods
+const modsBinary = { EZ: 2, HR: 16, DT: 64, HT: 256, NC: 512, } //Binary version of mods
 
 function CalculatePerformancePoint(resolve, filePath, accuracy, mods) {
     var cmdMods = '';
@@ -78,9 +78,7 @@ client.connect().then(() => {
             });
         }
 
-        //Detect received beatmap and calcul PP
-        if(message.message.indexOf(".r") == 0) {
-
-        }
+        //Recommend a beatmap depending on rank and mods
+        if(message.message.indexOf(".r") == 0) console.log(colors.debug(".r event WIP"));
     });
 }).catch((e) => { console.log(colors.oopsie(e)); });
