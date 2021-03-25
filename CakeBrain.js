@@ -13,7 +13,7 @@ var colors = require('colors'); //Console Colors
 colors.setTheme({ oopsie: ['brightRed', 'bold'], debug: 'brightGreen', pm: ['brightYellow', 'bold'], pmself: ['yellow', 'bold'] });
 const prettyMilliseconds = require('pretty-ms'); //Neat time display
 var toFixed = require('tofixed'); //Round up numbers to X decimal
-const modsBinary = { EZ: 2, HR: 16, DT: 64, HT: 256, NC: 512, } //Binary version of mods
+const modsBinary = { EZ: 2, HR: 16, DT: 64, HT: 256, NC: 64, } //Binary version of mods
 
 function CalculatePerformancePoint(resolve, filePath, accuracy, mods) {
     var cmdMods = '';
