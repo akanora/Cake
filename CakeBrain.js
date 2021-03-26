@@ -5,7 +5,7 @@ var validUrl = require('valid-url'); //Verify if URL is valid
 const osu = require('node-osu'); //Retrieve players informations
 const osuApi = new osu.Api(config.osuApiKey, { notFoundAsError: true, completeScores: true })
 const Banchojs = require("bancho.js"); //BanchoBot IRC
-const client = new Banchojs.BanchoClient({ username: config.osuUsername, password: config.osuIRCpassword });
+const bancho = new Banchojs.BanchoClient({ username: config.osuUsername, password: config.osuIRCpassword });
 var rp = require('request-promise'); //Request data from URL
 const fs = require('fs'); //.osu file download
 const download = (url, path, callback) => { rp(url, (err, res, body) => { rp(url).pipe(fs.createWriteStream(path)).on('close', callback); }); }
@@ -26,9 +26,9 @@ function CalculatePerformancePoint(resolve, filePath, accuracy, mods) {
     });
 };
 
-client.connect().then(() => {
-    console.log(colors.debug('Cake connected to BanchoBot'));
-    client.on("PM", (message) => {
+bancho.connect().then(() => {
+    console.log(colors.debug('Cake connected on BanchoBot'));
+    bancho.on("PM", (message) => {
         //Display message
         console.log((message.self) ? colors.pmself(`${message.user.ircUsername}: ${message.message}`) : colors.pm(`${message.user.ircUsername}: ${message.message}`));
         if(message.self) return;
@@ -81,3 +81,18 @@ client.connect().then(() => {
         if(message.message.indexOf(".r") == 0) console.log(colors.debug(".r event WIP"));
     });
 }).catch((e) => { console.log(colors.oopsie(e)); });
+
+//Discord Bot section
+const Discord = require('discord.js');
+const client = new Discord.Client();
+const prefix = '-';
+
+if(config.discordToken.indexOf(' ') == -1){
+    client.on('ready', () => { console.log(colors.debug(`Cake connected as ${client.user.tag} on discord`)); });
+
+    client.on('message', async message => {
+        if(message.content.charAt(0) == prefix && message.content.indexOf("cake") == 1) await message.react('🍰');
+        if(message.content.charAt(0) == prefix && message.content.indexOf("ping") == 1) await message.channel.send('Pong.');
+    });
+    client.login(config.discordToken);
+}
