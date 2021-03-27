@@ -1,7 +1,7 @@
 @echo off
+title Cake by AuracleTech
 :loop
 cls
-title Cake by AuracleTech
 node CakeBrain.js
-pause
+sleep 1
 goto loop
