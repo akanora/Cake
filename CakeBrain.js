@@ -1,11 +1,11 @@
-const config = require('./config.json'); //Retrieve cake's personnal informations
+const dotenv = require('dotenv').config(); //Load environment variables
 const { exec } = require('child_process'); //Start PerformanceCalculator
 const getUrls = require('get-urls'); //Retrieve beatmaps URLs
 var validUrl = require('valid-url'); //Verify if URL is valid
 const osu = require('node-osu'); //Retrieve players informations
-const osuApi = new osu.Api(config.osuApiKey, { notFoundAsError: true, completeScores: true })
+const osuApi = new osu.Api(process.env.OSU_API_KEY, { notFoundAsError: true, completeScores: true })
 const Banchojs = require("bancho.js"); //BanchoBot IRC
-const bancho = new Banchojs.BanchoClient({ username: config.osuUsername, password: config.osuIRCpassword });
+const bancho = new Banchojs.BanchoClient({ username: process.env.OSU_USERNAME, password: process.env.OSU_IRC_KEY });
 var rp = require('request-promise'); //Request data from URL
 const fs = require('fs'); //.osu file download
 const download = (url, path, callback) => { rp(url, (err, res, body) => { rp(url).pipe(fs.createWriteStream(path)).on('close', callback); }); }
@@ -18,7 +18,7 @@ const modsBinary = { EZ: 2, HR: 16, DT: 64, HT: 256, NC: 64, } //Binary version 
 function CalculatePerformancePoint(resolve, filePath, accuracy, mods) {
     var cmdMods = '';
     mods.forEach(element => { cmdMods += ` -m ${element}`; });
-    exec(`dotnet "${config.locationPerformanceCalculator}" simulate osu -a ${accuracy} ${filePath} -j${cmdMods.toLowerCase()}`, (error, stdout, stderr) => {
+    exec(`dotnet "${process.env.OSU_TOOLS_LOCATION}" simulate osu -a ${accuracy} ${filePath} -j${cmdMods.toLowerCase()}`, (error, stdout, stderr) => {
         if (error) { console.log(colors.oopsie(error.message)); return 0; }
         if (stderr) { console.log(colors.oopsie(stderr)); return 0; }
         resolve(JSON.parse(stdout), 0);
@@ -87,12 +87,75 @@ const Discord = require('discord.js');
 const client = new Discord.Client();
 const prefix = '-';
 
-if(config.discordToken.indexOf(' ') == -1){
-    client.on('ready', () => { console.log(colors.debug(`Cake connected as ${client.user.tag} on discord`)); });
+var wordTypedPerMinute = 65;
+var charPerWord = 6;
+var wordReadPerMinute = 225;
+var conscienceTakeoverTyping = 700;
+var charTypeSpeedPerMs = 75000/(charPerWord * wordTypedPerMinute);
+var previousMessages = [];
 
-    client.on('message', async message => {
-        if(message.content.charAt(0) == prefix && message.content.indexOf("cake") == 1) await message.react('🍰');
-        if(message.content.charAt(0) == prefix && message.content.indexOf("ping") == 1) await message.channel.send('Pong.');
-    });
-    client.login(config.discordToken);
+async function startReading(message){
+    if(message.author.bot) return;
+
+    if(message.channel.type === "dm" && message.author.id == '252858920886992897') await startTyping(client.channels.cache.get('793738190371684364'), message.content);
+
+    var wysi = Math.floor((Math.random() * 727) + 1);
+
+    previousMessages.push(message.content);
+    if(previousMessages.length > 3) previousMessages.shift();
+    if(previousMessages.length >= 3 && previousMessages[0] == previousMessages[1] && previousMessages[0] == previousMessages[2])
+        await startTyping(message.channel, previousMessages[0]).then(() => { previousMessages = []; }).catch((e) => { console.log(colors.oopsie(e)); });
+
+    var args = message.content.toLowerCase().split(/ +/g);
+    var command = (message.content.charAt(0) == prefix) ? true : false;
+
+    if(args.includes("onion")) await message.react('🧅');
+    if(args.includes("cursed")) return await message.react('823542794685251584').catch((e) => { console.log(colors.oopsie(e)); });
+    if(args.includes("cake") && wysi == 72) await startTyping(message.channel, "a very nice cake for you");
+    if(args.includes("cant aim") && wysi == 70) await startTyping(message.channel, "you can improve your aim by uninstalling osu");
+    if(args[0] == "hi" && wysi <= 7) await startTyping(message.channel, "hi");
+    if(args.includes("a princess")) await message.react('👑');
+    if(args.includes("bacon")) await message.react('🥓');
+    if(args.includes("kek") && wysi == 2) await startTyping(message.channel, "KEK KEK KEK KEK KEK KEK KEK 🍰 KEK KEK KEK KEK KEK KEK KEK");
+    if(args.includes("bad cake")) await message.delete();
+    if(args.includes("peppy") || args.includes("ppy")) await message.react('🧠');// && message.author.id != '603722955796512788'
+    if(args.includes("cake")) await message.react('🍰');// && message.author.id != '603722955796512788'
+    if(args.includes("pie")) await message.react('🥧');
+    if(args.includes("creampie")) await message.react('😏');
+    if(args.includes("pancake")) await message.react('🥞');
+    if(args.includes("potato")) await message.react('🥔');
+    if(args.includes("pizza")) await message.react('🍕');
+    if(args.includes("burgor")) await startTyping(message.channel, "burgor");
+    if(args.includes("burger")) await message.react('🍔');
+    if(args.includes("fries")) await message.react('🍟');
+    if(args.includes("egg")) await message.react('🥚');
+    if(args.includes("cheese")) await message.react('🧀');
+    if(args.includes("croissant")) await message.react('🥐');
+    if(args.includes("shit")) await message.react('💩');
+    if(wysi == 727) await message.react('823008724485406742').catch((e) => { console.log(colors.oopsie(e)); });
+    if(command && args[0] == `${prefix}roll`)
+        if(wysi != 69)
+            await message.channel.send(`${message.author.username} rolls 727 point(s)`);
+        else
+            await message.channel.send(`${message.author.username} rolls ${wysi} point(s)`);
+    if(command && args[0] == `${prefix}help`) await startTyping(message.channel, "no help for you hahaha       for now");
+    if(command && args[0] == `${prefix}ping`) await message.channel.send('Pong.');
+    if(args[0] == "gn" && wysi <= 14) await startTyping(message.channel, "good night d00d");
+    if(command && args[0] == `${prefix}hug` && wysi <= 50) await startTyping(message.channel, "i said no");
+    if(command && message.content.toLowerCase() == `${prefix}how old am i` && wysi <= 500) await startTyping(message.channel, "ur already dead, wake up bro");
 }
+
+async function startTyping(channel, content, options){
+    channel.startTyping();
+    setTimeout(endTyping, conscienceTakeoverTyping +(content.length * charTypeSpeedPerMs), channel, content, options);
+}
+
+async function endTyping(channel, content, options){
+    channel.send(content, options);
+    channel.stopTyping();
+}
+
+
+client.on('ready', () => { console.log(colors.debug(`Cake connected as ${client.user.tag} on discord`)); client.user.setActivity("-help", { type: "WATCHING" }); });
+client.on('message', async message => { await startReading(message); });
+client.login(process.env.DISCORD_TOKEN);
