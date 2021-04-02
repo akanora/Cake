@@ -23,7 +23,7 @@ module.exports = class CakeWeb {
 	}
 
 	start() {
-		app.set('view engine', 'ejs')
+		app.set('view engine', 'pug');
 		https.createServer({ cert: fs.readFileSync(this.WEB_SSL_CERTIFICATE), ca: fs.readFileSync(this.WEB_SSL_CHAIN), key: fs.readFileSync(this.WEB_SSL_PRIVATE_KEY) }, app).listen(443, () => console.log(colors.debug('Cake WEB : Listening port 443')));
 		http.createServer(app).listen(80, () => console.log(colors.debug('Cake WEB : Listening port 80')));
 
@@ -38,11 +38,11 @@ module.exports = class CakeWeb {
 
 			if(!req.secure) return res.redirect('https://' + req.headers.host + req.url);
 
-			if(request.split('.').pop().trim() == "ejs") return notFound(res);
+			if(request.split('.').pop().trim() == "pug") return notFound(res);
 
 			if(!path.extname(request)) {
 				if(fs.existsSync(path.join(__dirname, 'web', request))) {
-					if(fs.existsSync(path.join(__dirname, 'web', request, 'index.ejs')))
+					if(fs.existsSync(path.join(__dirname, 'web', request, 'index.pug')))
 						return res.render(path.join(__dirname, 'web', request))
 					else return notFound(res)
 				} else return notFound(res)
