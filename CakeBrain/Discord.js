@@ -17,7 +17,7 @@ const embed = new Discord.MessageEmbed()
 ```Music```****-play Music**** *Wont play music*\n****-skip**** *Wont skip*\n****-repeat**** *Turn on/off loop, except it wont*\n\
 by the way I lied there's none of these yet 🍰 here, be patient 🎂", true);
 function randomChance(min, max) { return ((Math.floor((Math.random() * max) + min)) == max) ? true : false; }
-function random(min, max) { return Math.floor((Math.random() * max) + min); }
+function randomNumber(min, max) { return Math.floor((Math.random() * max) + min); }
 
 module.exports = class CakeDiscord {
 	constructor(DISCORD_TOKEN) {
@@ -43,7 +43,7 @@ module.exports = class CakeDiscord {
 			//Commands
 			if(command === `roll727`) await message.channel.send(`${message.author.username} rolls 727 point(s)`).then((msg) => { message.delete(); });
 			if(command === `roll`) {
-				var random = random(1, 727);
+				var random = randomNumber(1, 727);
 				await message.channel.send(`${message.author.username} rolls ${random} point(s)`).then((msg) => { if(random == 727) msg.react('815977925441486908').catch((e) => { console.log(colors.oopsie(e)); }); message.delete(); });
 		    }
 		    if(command === `help`) return message.channel.send({ embed });
@@ -88,7 +88,7 @@ module.exports = class CakeDiscord {
 		    		if(randomChance(1, 727))
 			    		await message.channel.send("Let me look at my crystal ball... hmmm ...........").then(msg => { setTimeout(async function() { await message.channel.send(`\`${ballsResults[Math.floor(Math.random() * ballsResults.length)]}\``); }, 3000); });
 			    	else
-			    		await message.channel.send(`\`${ballsResults[Math.floor(Math.random() * ballsResults.length)]}\``);
+			    		await message.channel.send(`\`${ballsResults[randomNumber(0, ballsResults.length)]}\``);
 			    else
 			    	await message.channel.send("Ur question looks like a statement pal");
 			}
@@ -103,7 +103,7 @@ module.exports = class CakeDiscord {
 		    if(args.includes("kek") && randomChance(1, 200)) return await message.channel.send("KEK TRAIN 🍰").then(async () => { await message.channel.send("kek"); });
 		    if(query.includes("bad cake") || query.includes("stupid cake") || query.includes("hate cake")) return await message.delete();
 		    if(query.includes("im sad")) return await message.channel.send("if that can help I'm sad too, and I like u");
-		    if(args.includes("pizza") && args.includes("pineapple")) return await message.delete().then(async () => { await message.channel.send("NO"); });
+		    if(args.includes("pizza") && args.includes("pineapple")) return await message.delete().then(async () => { await message.channel.send(`<@!${message.author.id}> NO`); });
 		    if(args.includes("eat") && args.includes("cake")) return await message.channel.send("nom");
 		    //Reacts
 		    const reactPairs = { "frog": "🐸", "cake": "🍰", "pie": "🥧", "princess": "👑", "bacon": "🥓", "creampie": "😏", "onion": "🧅", "cursed": "823542794685251584", "pancake": "🥞", "potato": "🥔", "pizza": "🍕", "simp": "799525198788821002", "pineapple": "🍍", "burger": "🍔", "fries": "🍟", "egg": "🥚", "cheese": "🧀", "smh": "🙄", "croissant": "🥐", "hat": "🎩", "itunes": "🎵", "mango": "🥭", "chicken": "🐔", "chocolate": "🍫", "beef": "🐄", "shit": "💩", "milk": "🥛", "wtf": "799538201463226388", "gne": "821349880747261974" }
