@@ -37,7 +37,7 @@ module.exports = class CakeBancho {
 	                if(!validUrl.isUri(element)) return;
 	                element = new URL(element);
 	                if(element.hostname != "osu.ppy.sh") return;
-	                var beatmapID = element.href.split("/");
+	                var beatmapID = element.href.split("#");
 	                beatmapID = beatmapID[beatmapID.length - 1].replace(/\D/g,'');
 	                if(isNaN(beatmapID)) return;
 	                var modsArgs = message.message.split("+").join("-").split("-"), mods = [];
